@@ -1,0 +1,127 @@
+Macroinvertebrate.Family,Most,Least,IWLScore,IWLgroup
+(Coleoptera) Undet. Coleoptera,0,0,2,8
+(Coleoptera),0,0,2,8
+(Coleoptera) Chrysomelidae,0,0,2,8
+(Coleoptera) Curculionidae,0,0,2,8
+(Coleoptera) Dryopidae,0,0,2,8
+(Coleoptera) Dytiscidae,0,0,2,8
+(Coleoptera) Elmidae,0,0,3,5
+(Coleoptera) Gyrinidae,0,0,2,8
+(Coleoptera) Haliplidae,0,-1,2,8
+(Coleoptera) Hydraenidae,0,0,2,8
+(Coleoptera) Hydrophilidae,0,0,2,8
+(Coleoptera) Limnichidae,0,0,2,8
+(Coleoptera) Noteridae,0,0,2,8
+(Coleoptera) Psephenidae,1,0,2,8
+(Coleoptera) Ptilodactylidae,0,0,2,8
+(Crustacea),0,0,0,0
+(Crustacea) Amphipoda,0,-1,2,14
+(Crustacea) Asellidae,0,-1,2,15
+(Crustacea: Decapoda) Pleocyemata: Cambaridae,0,0,2,11
+(Crustacea: Decapoda) Dendrobranchiata,0,0,2,11
+(Crustacea) Ostracoda,0,0,0,0
+(Diptera),0,0,0,0
+(Diptera) Athericidae,1,0,2,18
+(Diptera) Ceratopogonidae,0,0,0,0
+(Diptera: Chironomidae),0,0,1,22
+(Diptera) Dixidae,0,0,0,0
+(Diptera) Dolichopodidae,0,0,0,0
+(Diptera) Empididae,0,0,0,0
+(Diptera) Ephydridae,0,0,0,0
+(Diptera) Muscidae,0,0,0,0
+(Diptera) Simuliidae,0,-1,1,20
+(Diptera) Stratiomyidae,0,0,0,0
+(Diptera) Tabanidae,0,-1,0,0
+(Diptera) Tipulidae,0,0,2,10
+(Diptera: Chironomidae) Chironomus,0,-1,1,22
+(Ephemeroptera),0,0,3,3
+(Ephemeroptera) Other,0,0,3,3
+(Ephemeroptera) Baetidae,0,0,3,3
+(Ephemeroptera) Baetiscidae,1,0,3,3
+(Ephemeroptera) Caenidae,1,0,3,3
+(Ephemeroptera) Ephemerellidae,1,0,3,3
+(Ephemeroptera) Ephemeridae,1,0,3,3
+(Ephemeroptera) Heptageniidae,1,0,3,3
+(Ephemeroptera) Isonychiidae,1,0,3,3
+(Ephemeroptera) Leptohyphidae,1,0,3,3
+(Ephemeroptera) Leptophlebiidae,1,0,3,3
+(Ephemeroptera) Polymitarcyidae,1,0,3,3
+(Ephemeroptera) Potamanthidae,1,0,3,3
+(Ephemeroptera) Siphlonuridae,0,0,0,3
+(Hemiptera),0,0,0,0
+(Hemiptera) Corixidae,0,-1,0,0
+(Hemiptera) Other,0,0,0,0
+(Megaloptera),0,0,0,0
+(Megaloptera) Corydalidae,1,0,3,2
+(Megaloptera) Sialidae,0,-1,2,17
+(Mollusca),0,0,2,9
+(Mollusca: Gastropoda) Ancylidae,0,0,1,24
+(Mollusca) Bithyniidae,0,0,3,4
+(Mollusca) Corbiculidae,0,-1,2,9
+(Mollusca) Gastropoda,0,0,1,24
+(Mollusca) Hydrobiidae,0,0,0,0
+(Mollusca: Gastropoda) Lymnaeidae,0,-1,1,24
+(Mollusca) Pelecypoda,0,-1,2,9
+(Mollusca: Gastropoda) Physidae,0,-1,1,23
+(Mollusca: Gastropoda) Planorbidae,0,0,1,24
+(Mollusca) Pleuroceridae,0,0,3,4
+(Mollusca) Valvatidae,0,0,3,4
+(Mollusca) Viviparidae,0,0,3,4
+(Odonata),0,0,2,12
+(Odonata) Aeshnidae,0,0,2,12
+(Odonata: Anisoptera) Aeshnidae,0,0,2,12
+(Odonata) Anisoptera,0,0,2,12
+(Odonata) Calopterygidae,0,-1,2,13
+(Odonata) Coenagrionidae,0,-1,2,13
+(Odonata) Cordulegastridae,0,-1,2,12
+(Odonata) Corduliidae,0,0,2,12
+(Odonata) Gomphidae,1,0,2,12
+(Odonata) Lestidae,0,0,2,13
+(Odonata) Libellulidae,0,0,2,12
+(Odonata) Macromiidae,0,0,2,12
+(Odonata) Petaluridae,0,0,2,13
+(Odonata: Anisoptera) Aeshnidae,0,0,2,12
+(Odonata: Anisoptera) Cordulegastridae,0,-1,2,12
+(Odonata: Anisoptera) Gomphidae,1,0,2,12
+(Odonata: Zygoptera) Calopterygidae,0,-1,2,13
+(Odonata: Zygoptera) Coenagrionidae,0,-1,2,13
+(Odonata) Zygoptera,0,0,2,12
+(OTHER) Lepidoptera,0,0,0,0
+(OTHER) Nemertea,0,0,0,0
+(OTHER) Polydesmida,0,0,0,0
+(Plecoptera),0,0,3,6
+(Plecoptera) Other,0,0,3,6
+(Plecoptera) Capniidae,1,0,3,6
+(Plecoptera) Chloroperlidae,1,0,3,6
+(Plecoptera) Leuctridae,1,0,3,6
+(Plecoptera) Nemouridae,1,0,3,6
+(Plecoptera) Peltoperlidae,1,0,3,6
+(Plecoptera) Perlidae,1,0,3,6
+(Plecoptera) Perlodidae,1,0,3,6
+(Plecoptera) Pteronarcidae,1,0,3,6
+(Trichoptera),0,0,3,1
+(Trichoptera) Apataniidae,0,0,3,1
+(Trichoptera) Brachycentridae,1,0,3,1
+(Trichoptera) Calamoceratidae,0,0,3,1
+(Trichoptera) Dipseudopsidae,0,0,3,1
+(Trichoptera) Glossosomatidae,1,0,3,1
+(Trichoptera) Goeridae,0,0,3,1
+(Trichoptera) Helicopsychidae,1,0,3,1
+(Trichoptera) Hydropsychidae,0,0,3,1
+(Trichoptera) Hydroptilidae,1,0,3,1
+(Trichoptera) Lepidostomatidae,1,0,3,1
+(Trichoptera) Leptoceridae,0,0,3,1
+(Trichoptera) Limnephilidae,0,0,3,1
+(Trichoptera) Odontoceridae,1,0,3,1
+(Trichoptera) Philopotamidae,1,0,3,1
+(Trichoptera) Phryganeidae,0,0,3,1
+(Trichoptera) Polycentropodidae,1,0,3,1
+(Trichoptera) Psychomyiidae,0,0,3,1
+(Trichoptera) Rhyacophilidae,1,0,3,1
+(Trichoptera) Uenoidae,1,0,3,1
+(Wormlike),0,0,0,0
+"(Wormlike) Annelidae DON""T USE because includes leeches",0,0,0,0
+(Wormlike) Hirudinea,0,-1,1,21
+(Wormlike) Oligochaeta,0,0,1,19
+(Wormlike) Turbellaria,0,-1,0,0
+"(Wormlike) Tricladida, Planaridae",0,0,0,0
