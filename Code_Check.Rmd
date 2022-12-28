@@ -1,0 +1,59 @@
+---
+title: "Code Check"
+author: "Makenzie Garrett"
+date: "12/28/2022"
+output: html_document
+---
+Here we are making the data frames "bugs", "sample", and "field". 
+
+```{r}
+
+library(dplyr)
+
+bugs<-read.csv(here::here("2021/bug_repeat_1.csv"))
+sample<-read.csv(here::here("2021/WAVE_bug_id_0.csv"))
+field<-read.csv(here::here("2021/S_WSEI_SAMPLE_EVENT_INFO_0.csv"))
+
+
+```
+
+Here we are creating the data frame "assess.2021".
+
+```{r}
+assess.2021<-read.csv(here::here("WAVE_NAMES_2021.csv"),stringsAsFactors = FALSE)
+```
+
+Creating a df for column names.
+```{r}
+colnames<-read.csv(here::here("lookuptables/db_colnames.csv"),stringsAsFactors = FALSE)
+```
+
+Bug ids. Not really sure what is happening here, but it created "bugs.short"
+
+```{r}
+bugs.short<-bugs %>% 
+  select(ParentGlobalID,Final.ID) %>% 
+  distinct()
+```
+Merging "sample" and "bugs.short" by "GlobalID" and "ParentGlobalID"
+
+```{r}
+combo<-merge(
+  sample,bugs.short,by.x="GlobalID",by.y="ParentGlobalID")
+
+```
+Combining 
+
+```{r}
+combo.short<-combo %>% 
+  select(
+    GlobalID,Please.enter.the.Sample.Accession.Number,Final.ID) %>% 
+  distinct()
+
+knitr::kable(combo[1 : 5, 1 : 5])
+knitr::kable(combo.short)
+```
+
+
+
+
