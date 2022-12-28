@@ -1,0 +1,26 @@
+---
+title: "WAVE_annual_Report"
+author: "Keleigh Reynolds"
+date: "2/8/2022"
+output: word_document
+params:
+  year: 2021
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## WAVE (Water Assessments by Volunteer Evaluators)
+
+This is the annual WAVE report, prepared for the `r params$year` season. Water Assessments by Volunteer Evaluators (WAVE) offers interested citizen scientists the ability to engage in local science and monitoring to benefit the NYS DEC's biomonitoring program. The WAVE program is utilized by the Streams Biomonitoring Unit (SBU) to internally prioritize sites for professional follow up and enhance long term trend analysis.
+
+The WAVE method utilizes presence only for macroinvertebrate collection. Presence only metrics use the presence of key indicator organisms, in this case benthic macroinvertebrates, to identify impaired or non-impacted water quality in streams and rivers. It does not assume that missing organisms are absent in the system being studied thus removing the vulnerability to sample collection and sorting errors. Neither does it rely on a count of the individual organisms in a single collection. Therefore, presence only metrics require fewer state resources to ensure data are of sufficient quality for their intended purposes. Presence only macroinvertebrate metrics for high gradient wadeable streams were developed based on NYS DEC's 30-year data set to identify the specific organisms for the "least" vs. "most" wanted organisms. The WAVE method is one that requires little training or background.
+
+The WAVE program relies on citizen scientists for the collection of macroinvertebrates only, thus decreasing potential identification errors, and increasing the number of stream sites able to be screened in one year, beyond the limiting staffing abilities of the SBU team. By requiring voucher specimens of each macroinvertebrate type collected, the potential errors introduced by WAVE volunteers are reduced.
+
+The WAVE program begins on July 1 and ends on September 30.
+
+## `r params$year` Results
+
+Maybe have a map and go from overall down to the site specifics with a table of what was found where by site? then email out the overall report.

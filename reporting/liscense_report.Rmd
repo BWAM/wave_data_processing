@@ -1,0 +1,88 @@
+---
+title: "WAVE Collection Report"
+author: 'NYSDEC SMAS : Keleigh Reynolds'
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+params:
+  year: 2021
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+
+year=params$year
+
+#read in the data
+info<-read.csv(here::here("/data/WAVE_bug_id_0.csv"),stringsAsFactors = FALSE)
+bug.id<-read.csv(here::here("data/bug_repeat_1.csv"),stringsAsFactors = FALSE)
+
+#merge with accession # and info
+
+all.raw<-merge(bug.id,info,by.x="ParentGlobalID",by.y = "GlobalID")
+
+
+```
+
+# WAVE `r params$year` Collection Report
+
+### Section a). Name of the Licensee
+
+Keleigh Reynolds, NYS DEC: 625 Broadway, Albany NY
+
+Please see the section below for designated agent's list along with collection date and location.
+
+### Section b). License Number
+
+License \# 2678
+
+### Sections c-e). Name of Animals Collected, Location, Date
+
+```{r echo=FALSE,message=FALSE,warning=FALSE,fig.width=8}
+
+table<-all.raw %>% 
+  select(Final.ID,WAVE.Volunteer.s.Name,Sample.Date,Stream.Name,Enter.the.sample.Latitude,Enter.the.sample.Longitude) %>% 
+  group_by(Final.ID) %>% 
+  mutate("n_total"=n()) %>% 
+  group_by(Final.ID,Stream.Name,Sample.Date,WAVE.Volunteer.s.Name) %>% 
+  mutate("number of individuals"=n()) %>% 
+  distinct() %>% 
+  arrange(Final.ID)
+
+table1<-table %>% 
+  filter(Final.ID!="", Final.ID!="() ") %>% 
+  mutate(Sample.Date=as.Date(Sample.Date,"%m/%d/%Y")) %>% 
+  mutate(Sample.Date=format(Sample.Date,"%m/%d/%Y")) %>% 
+  rename(Taxa=Final.ID,
+         "Desig. Agent Name"=WAVE.Volunteer.s.Name,
+         Date=Sample.Date,
+         "Stream Name"=Stream.Name,
+         "Num. Specimens"=`number of individuals`,
+         Lat=Enter.the.sample.Latitude,
+         Long=Enter.the.sample.Longitude,
+         "Num. Total"=n_total) %>% 
+  relocate("Num. Total",.after = "Num. Specimens")
+
+library(flextable)
+t<-flextable(table1) %>% 
+  flextable::autofit() %>% 
+  flextable::theme_vanilla() %>% 
+  flextable::fit_to_width(max_width = 8) %>% 
+  flextable::fontsize(size = 10,part = "header") %>% 
+  flextable::fontsize(size = 8,part = "body") %>% 
+  flextable::merge_v(j=c("Taxa","Num. Total"),part = "body") %>% 
+  flextable::fontsize(size=6,j=5:6,part = "body")
+
+t
+```
+
+
+### Section f). Biological Data Collected
+
+For the WAVE program, voucher specimens are sent in for identification by NYSDEC personnel. Biological data collected in the field are limited to the unique vouchers sent in. This includes one specimen per species of macroinvertebrate observed by the volunteers. Volunteers also fill out a field observation survey, that includes physical characteristics of the stream sampling site. Several volunteers provide temperature readings, but this is not consistent nor required.
+
+### Section g). Final Disposition of Animals
+
+Macroinvertebrate voucher specimens are dispatched in the field when preserved in isopropyl alcohol or ethanol. Voucher specimens are stored in plastic vials and saved for 1 year after collection.
