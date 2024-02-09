@@ -1,11 +1,11 @@
 #Keleigh Reynolds
-#WAVE 2020 workup
+#WAVE workup
 #fixing files from survey123 to work with the scripts here
 library(dplyr)
 
-bugs<-read.csv("2021/bug_repeat_1.csv",stringsAsFactors = FALSE)
-sample<-read.csv("2021/WAVE_bug_id_0.csv",stringsAsFactors = FALSE)
-field<-read.csv("2021/S_WSEI_SAMPLE_EVENT_INFO_0.csv")
+bugs<-read.csv("2023/bug_repeat_1.csv",stringsAsFactors = FALSE)
+sample<-read.csv("2023/WAVE_bug_id_0.csv",stringsAsFactors = FALSE)
+field<-read.csv("2023/S_WSEI_SAMPLE_EVENT_INFO_0.csv")
 
 MACROS <- read.csv("lookuptables/Families.csv")
 
@@ -24,11 +24,11 @@ bugs.short2<-bugs %>%
   select(ParentGlobalID,Final.ID) %>% 
   distinct()
 
-combo<-merge(sample,bugs.short,by.x="GlobalID",by.y="ParentGlobalID")
+combo<-merge(sample,bugs.short,by.x="GlobalID",by.y="ParentGlobalID",all.x = TRUE)
 #collapse columns into one
 
 
-combo2<-merge(sample,bugs.short2,by.x="GlobalID",by.y="ParentGlobalID")
+combo2<-merge(sample,bugs.short2,by.x="GlobalID",by.y="ParentGlobalID",all.x = TRUE)
 
 #merge macros and the samples
 
@@ -57,7 +57,7 @@ ASSESSMENT$IWL <- ifelse(ASSESSMENT$IWLScore<12,"Poor",ASSESSMENT$IWL)
 
 #merge back with original to get the assessments
 combo2<-combo2 %>% 
-  select(!c(Final.ID)) %>% 
+  select(!c(Final.ID,"ObjectID" )) %>% 
   distinct()
 
 final<-merge(combo2,ASSESSMENT,by="GlobalID",all.x = TRUE)
@@ -66,38 +66,51 @@ final<-merge(final,bugs.short,by.x = "GlobalID",by.y="ParentGlobalID")
 
 
 # write the tables
-write.table(final,file="2021/Assessment_check.csv",sep=",",row.names=FALSE)
+#write.table(final,file="2022/Assessment_check.csv",sep=",",row.names=FALSE)
+write.table(field, file ="2023/field_check_match_ACnum.csv",sep = ",",row.names = FALSE)
 
-combo3<-merge(ASSESSMENT,bugs.short2,by.x="GlobalID",by.y="ParentGlobalID")
+
+# Come back here when AC numbers and emails are checked -------------------
+
+
+combo3<-merge(ASSESSMENT,bugs.short,by.x="GlobalID",by.y="ParentGlobalID",all.x = TRUE)
 
 #get accession# and globalID to merge with field sheets
-final.short<-final %>% 
-  select(Please.enter.the.Sample.Accession.Number,GlobalID)
+#read matched file back in
+field<-read.csv("2023/field_check_match_ACnum.csv")
 
-combo3<-merge(combo3,final.short,by="GlobalID",all.x = TRUE)
-combo3<-merge(combo3,field,
+final.short<-final %>% 
+  select(Please.enter.the.Sample.Accession.Number,GlobalID) %>% 
+  distinct()
+
+combo4<-merge(combo3,final.short,by="GlobalID",all.x = TRUE)
+combo5<-merge(combo4,field,
               by.x="Please.enter.the.Sample.Accession.Number",
-              by.y="Step.4..The.fun.part.",all.x=TRUE)
-combo3<-combo3 %>% 
+              by.y="AC_number",
+              all.x = TRUE)
+combo5<-combo5 %>% 
+  select(-c("ï..ObjectID","GlobalID.y")) %>% 
   distinct()
 
 bugs.short3<-bugs %>% 
   select(ParentGlobalID,Final.ID) %>% 
   distinct() %>% 
   group_by(ParentGlobalID) %>% 
-  summarise_each(funs(paste(.,collapse=",")))
+  across(funs(paste(.,collapse=",")))
 
-combo3<-combo3 %>% 
-  select(!Final.ID) %>% 
-  distinct()
+# combo5<-combo5 %>% 
+#   select(!Final.ID) %>% 
+#   distinct()
 
-combo3<-merge(combo3,bugs.short3, by.x="GlobalID.x",by.y="ParentGlobalID",all.x = TRUE)
-combo3<-combo3 %>% 
+combo6<-merge(combo5,bugs.short3, by.x="GlobalID.x",by.y="ParentGlobalID",all.x = TRUE)
+combo6<-combo6 %>% 
   select(!GlobalID.x) %>% 
   distinct()
 
-write.csv(combo3,file = "2021/all.with.assessment_check.csv",row.names = FALSE)
-#bring inthe site submission
+write.csv(combo6,file = "2022/all.with.assessment_check.csv",row.names = FALSE)
+#bring in the checked file
+
+combo7<-read.csv(here::here("2022/all.with.assessment_check.csv"))
 
 # site.sub<-read.csv("2021/site_submission.csv",stringsAsFactors = FALSE)
 # 
@@ -133,8 +146,8 @@ write.csv(combo3,file = "2021/all.with.assessment_check.csv",row.names = FALSE)
 # #try again with the lat/longs and the sampler's names
 # write.csv(combo4,"2020/emails_all.csv")
 
-c2021<-read.csv("2021/all.with.assessment_21.csv")
+c2022<-read.csv("2022/all.with.assessment_check.csv")
 
-colnames(c2021) = gsub("S_", "", colnames(c2021))
+colnames(c2022) = gsub("S_", "", colnames(c2022))
 
-write.csv(c2021,"2021/all.with.assessment_21_fix.csv")
+write.csv(c2022,"2022/all.with.assessment_22_fix.csv")

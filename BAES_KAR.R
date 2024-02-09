@@ -48,13 +48,13 @@ data<-merge(data1,myfiles$metrics.with.all.fields,by.x=c("SITE_ID","DATE"),
 rm(data1)
 
 #modify species table for merge
-species<-merge(myfiles$MASTER_20220128_S_MACRO_SPECIES_DATA_HISTORY,
-               myfiles$MASTER_20220128_S_MACRO_SPECIES_SAMP_INF_HIST,
+species<-merge(myfiles$MASTER_20221206_S_MACRO_SPECIES_DATA_HISTORY,
+               myfiles$MASTER_20221116_S_MACRO_SPECIES_SAMP_INF_HIST,
                by.x="MSDH_LINKED_ID_VALIDATOR",
                by.y="MSSIH_LINKED_ID_VALIDATOR")
 
 
-myfiles$MASTER_20220128_S_MACRO_SPECIES_DATA_HISTORY$sample_id<-paste(species$BASIN,"-",species$LOCATION,"-",species$RIVMILE,sep="")
+myfiles$MASTER_20221206_S_MACRO_SPECIES_DATA_HISTORY$sample_id<-paste(species$BASIN,"-",species$LOCATION,"-",species$RIVMILE,sep="")
 species$DATE <- as.Date(species$MSSIH_EVENT_SMAS_SAMPLE_DATE,"%m/%d/%Y")
 species<-unique(species[c("MSSIH_EVENT_SMAS_HISTORY_ID",
                           "DATE",
@@ -151,9 +151,9 @@ write.csv(SBUProb, file="SBUProb.csv",row.names=FALSE)
 #fixing files from survey123 to work with the scripts here
 library(dplyr)
 
-bugs<-read.csv("2021/bug_repeat_1.csv",stringsAsFactors = FALSE)
-sample<-read.csv("2021/WAVE_bug_id_0.csv",stringsAsFactors = FALSE)
-field<-read.csv("2021/S_WSEI_SAMPLE_EVENT_INFO_0.csv")
+bugs<-read.csv("2022/bug_repeat_1.csv",stringsAsFactors = FALSE)
+sample<-read.csv("2022/WAVE_bug_id_0.csv",stringsAsFactors = FALSE)
+field<-read.csv("2022/S_WSEI_SAMPLE_EVENT_INFO_0.csv")
 
 MACROS <- read.csv("lookuptables/Families.csv")
 
@@ -212,7 +212,7 @@ WAVEsample$`1.High`<- highT
 WAVEsample$`2.Slight`<- slightT
 WAVEsample$`3.Low`<- lowT
 ProbSamp <- WAVEsample
-rm(list=c("WAVEsample","sample","slightT","lowT","highT"))
+#rm(list=c("WAVEsample","sample","slightT","lowT","highT"))
 
 
 
@@ -233,7 +233,7 @@ for(i in 2:nsamples){
   ProbSamp <- merge(ProbSamp,WAVEsample,all=TRUE)
   rm(list=c("WAVEsample","sample","slightT","lowT","highT"))
 }
-rm(list=c("i","nsamples","samples"))
+#rm(list=c("i","nsamples","samples"))
 
 #restrict it to only those sites where Prob Low is >50%
 ProbSamp<-unique(ProbSamp[c("sample_id","Sample.Date","3.Low")])
@@ -248,11 +248,11 @@ sample.short<-sample %>%
          Longitude=Enter.the.sample.Longitude)
 
 ProbSamp<-merge(ProbSamp,sample.short,by.x="sample_id",by.y="GlobalID")
-write.csv(ProbSamp,file="2021/Recommended.WAVE.Sites.csv",row.names=FALSE)
+write.csv(ProbSamp,file="2022/Recommended.WAVE.Sites.csv",row.names=FALSE)
 
 
 #pull all of the recommended WAVE sites for a round up
-r.2019<-read.csv(here::here("2020/Recommended.WAVE.Sites.csv"),stringsAsFactors = FALSE)
+r.2019<-read.csv(here::here("2021/Recommended.WAVE.Sites_all.csv"),stringsAsFactors = FALSE)
 combo.rec<-r.2019 %>% 
   dplyr::rename("3.Low"=X3.Low) %>% 
   mutate(sample_id="",
@@ -260,5 +260,5 @@ combo.rec<-r.2019 %>%
 combo.rec<-rbind.fill(combo.rec,ProbSamp)
 
 combo.rec$Sample.Date<-as.Date(combo.rec$Sample.Date,"%m/%d/%Y")
-write.csv(combo.rec,file="2021/Recommended.WAVE.Sites_all.csv",row.names=FALSE)
+write.csv(combo.rec,file="2022/Recommended.WAVE.Sites_all.csv",row.names=FALSE)
 

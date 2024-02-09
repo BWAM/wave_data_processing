@@ -6,7 +6,7 @@ output:
   word_document: default
   html_document: default
 params:
-  year: 2021
+  year: 2022
 ---
 
 ```{r setup, include=FALSE}
@@ -16,8 +16,8 @@ library(dplyr)
 year=params$year
 
 #read in the data
-info<-read.csv(here::here("/data/WAVE_bug_id_0.csv"),stringsAsFactors = FALSE)
-bug.id<-read.csv(here::here("data/bug_repeat_1.csv"),stringsAsFactors = FALSE)
+info<-read.csv(here::here("2022/WAVE_bug_id_0.csv"),stringsAsFactors = FALSE)
+bug.id<-read.csv(here::here("2022/bug_repeat_1.csv"),stringsAsFactors = FALSE)
 
 #merge with accession # and info
 

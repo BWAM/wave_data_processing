@@ -1,12 +1,12 @@
 #making db tables
 library(dplyr)
 
-bugs<-read.csv(here::here("2021/bug_repeat_1.csv"))
-sample<-read.csv(here::here("2021/WAVE_bug_id_0.csv"))
-field<-read.csv(here::here("2021/S_WSEI_SAMPLE_EVENT_INFO_0.csv"))
+bugs<-read.csv(here::here("2022/bug_repeat_1.csv"))
+sample<-read.csv(here::here("2022/WAVE_bug_id_0.csv"))
+field<-read.csv(here::here("2022/field_check_match_AC.csv"))
 
 #assessment for 2021
-assess.2021<-read.csv(here::here("2021/all.with.assessment.csv"),stringsAsFactors = FALSE)
+assess.2021<-read.csv(here::here("2022/all.with.assessment_check.csv"),stringsAsFactors = FALSE)
 
 
 #read in the old ones
@@ -26,8 +26,8 @@ combo.short<-combo %>%
   select(GlobalID,Please.enter.the.Sample.Accession.Number,Final.ID) %>% 
   distinct()
 field.short<-field %>% 
-  select(S_WSEI_SAMPLE_ID,`Step.4..The.fun.part.`) %>% 
-  dplyr::rename(Accession.Number=`Step.4..The.fun.part.`)
+  select(S_WSEI_SAMPLE_ID,AC_number) %>%
+  dplyr::rename(Accession.Number=AC_number)
 
 bugs.2020<-merge(combo.short,field.short,by.x="Please.enter.the.Sample.Accession.Number",
                  by.y="Accession.Number") %>% 
@@ -39,7 +39,7 @@ bugs.2020<-bugs.2020 %>%
 bugs.2020$WMFDH_MACRO_FAMILY<-toupper(bugs.2020$WMFDH_MACRO_FAMILY)
 
 write.csv(bugs.2020,
-          "outputs/db_tables/20220208_S_WAVE_MACROINVERTEBRATE_FAMILY_DATA_HISTORY_append.csv",
+          here::here("outputs/db_tables/20230210_S_WAVE_MACROINVERTEBRATE_FAMILY_DATA_HISTORY_append.csv"),
           row.names = FALSE)
 
 
@@ -60,7 +60,7 @@ write.csv(assess.2021.short,
 #sample event info
 
 field.table<-field %>% 
-  select_if(grepl("S_WSEI_",colnames(field)))
+  select_if(grepl("S_WSEI_",colnames(field))|grepl("Date",colnames(field)))
 
 colnames(field.table)=gsub("S_","",colnames(field.table))
 
@@ -68,13 +68,14 @@ field.table<-field.table %>%
   relocate(WSEI_SAMPLE_ID,.before=WSEI_LATITUDE)
 #fix dates
 
-field.table$WSEI_COLLECTION_DATE<-format(field.table$WSEI_COLLECTION_DATE,"%m/%d/%Y")
+field.table$WSEI_COLLECTION_DATE<-format(as.Date(field.table$Date,"%m/%d/%Y"),"%m/%d/%Y")
 
 field.names<-names(field.table)
 col.db<-unique(colnames$WAVE_SAMPLE_EVENT_INFO)
 
 nonmatch<-setdiff(col.db,field.names)
-#looks good!
+#fix missing notes colm
+field.table$WSEI_USER_NOTES<-""
 
 #write to table
 write.csv(field.table,
@@ -84,14 +85,19 @@ write.csv(field.table,
 #combine into one master file
 old.wave<-read.csv("C:/Users/kareynol/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_WAVE_ITS/MASTER_S_WAVE_ASSESSMENT.csv")
 old.bugs<-read.csv("C:/Users/kareynol/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_WAVE_ITS/MASTER_S_WAVE_MACROINVERTEBRATE_FAMILY_DATA_HISTORY.csv")
-old.info<-read.csv("C:/Users/kareynol/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_WAVE_ITS/MASTER_S_WAVE_SAMPLE_EVENT_INFO_JOIN.csv")
+old.info<-read.csv("C:/Users/kareynol/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_WAVE_ITS/MASTER_S_WAVE_SAMPLE_EVENT_INFO.csv")
 
 
 #sample event
-
+setdiff(names(old.info),names(field.table))
+field.table$Date<-NULL
+field.table$CreationDate<-NULL
+field.table$EditDate<-NULL
 master.samp<-rbind(field.table,old.info)
+setdiff(names(old.bugs),names(bugs.2020))
 master.bugs<-rbind(old.bugs,bugs.2020)
-master.assess<-rbind(old.wave,assess.2020.short)
+setdiff(names(old.wave),names(assess.2021.short))
+master.assess<-rbind(old.wave,assess.2021.short)
 
 #write to csv
 write.csv(master.samp,"outputs/db_tables/MASTER_S_WAVE_SAMPLE_EVENT_INFO.csv",row.names = FALSE)
