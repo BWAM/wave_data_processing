@@ -4,7 +4,9 @@
 
 #read in the final tables from the L drive
 
-wave_score<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_ASSESSEMENT.csv")
+year = "2023"
+
+wave_score<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_ASSESSMENT.csv")
 site_info<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_SAMPLE_EVENT_INFO.csv")
 
 
@@ -79,4 +81,7 @@ merge3<-merge2 %>%
   select(-c(WA_ASSESSMENT,pos_long,diff_lat,diff_long,group,collapse, row_to_collapse)) %>% 
   rename(Historical_results = text)
 
-write.csv(merge3, here::here("outputs/wave_map_dups_removed.csv"))
+write.csv(merge3, here::here(paste("outputs/",
+                                   year,
+                                   "_wave_map_dups_removed.csv",
+                                   sep = "")))
