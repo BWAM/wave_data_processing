@@ -1,0 +1,217 @@
+---
+title: "WAVE_processing_master"
+author: "Keleigh Reynolds"
+date: "`r Sys.Date()`"
+output: html_document
+params:
+  year: 2023
+  AC_match_complete: TRUE
+  matched_file_name: WAVE_2023_matched.csv
+---
+
+If you anticipate any changes to the code, or want ot retain a copy of exactly what you did, I suggest creating a copy of the master and saving it with a new name to have that record.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+params$year = params$year
+params$AC_match_complete = params$AC_match_complete
+params$matched_file_name = params$matched_file_name
+```
+
+## Start Here
+Begin by reading in your files that were downloaded from survey123
+
+```{r read-in-files}
+library(dplyr)
+#read in survey data
+bugs<-read.csv(paste(params$year,"/bug_repeat_1.csv",sep = ""),stringsAsFactors = FALSE)
+sample<-read.csv(paste(params$year,"/WAVE_bug_id_0.csv",sep = ""),stringsAsFactors = FALSE)
+field<-read.csv(paste(params$year,"/S_WSEI_SAMPLE_EVENT_INFO_0.csv",sep = ""))
+
+#read in the master macro table for WAVE families
+MACROS <- read.csv("lookuptables/Families.csv")
+
+#limit to just the present year for all of these
+bugs<-bugs %>% 
+  mutate(date = format(as.Date(CreationDate,"%m/%d/%Y %H:%M:%S"))) %>% 
+  filter(date >=params$year)
+
+sample<-sample %>% 
+  mutate(date = format(as.Date(Sample.Date,"%m/%d/%Y %H:%M:%S"))) %>% 
+  filter(date >=params$year)
+
+field<-field %>% 
+  mutate(date = format(as.Date(Date,"%m/%d/%Y %H:%M"))) %>% 
+  filter(date >=params$year)
+
+```
+
+```{r subset-and-compile-bug-data}
+bugs.short<-bugs %>% 
+  select(ParentGlobalID,Final.ID) %>% 
+  distinct()
+
+#this creates a numbered column by using the ParentGLobalID to create a sequential count by ID
+bugs.short$macro_num<-ave(bugs.short$ParentGlobalID, bugs.short$ParentGlobalID, FUN=seq_along)
+
+bugs.short<-bugs.short %>% 
+  tidyr::spread(key=macro_num,value=Final.ID)
+
+#this will be useful for the email i think
+
+bugs.short2<-bugs %>% 
+  select(ParentGlobalID,Final.ID) %>% 
+  distinct()
+
+#this is a set of various groupings to accomodate emails and such. 
+```
+
+Next combine the parent and child .csv's from teh bug ID survey
+ 
+```{r combine-survey-results}
+
+#wide version
+combo<-merge(sample,
+             bugs.short,
+             by.x="GlobalID",by.y="ParentGlobalID")
+
+#long version
+combo2<-merge(sample,
+              bugs.short2,
+              by.x="GlobalID",by.y="ParentGlobalID")
+
+```
+
+Next create the assessment dataframe by using the MACRO file and the long version of the combined .csvs from the bug id survey.
+
+```{r create-assessment-df}
+#merge macros and the samples
+
+ASSESSMENT<-merge(combo2,MACROS,by.x="Final.ID",by.y="Macroinvertebrate.Family")
+#Make numeric columns
+ASSESSMENT$Most <- as.numeric(ASSESSMENT$Most)
+ASSESSMENT$Least <- as.numeric(ASSESSMENT$Least)
+ASSESSMENT$IWLScore <- as.numeric(ASSESSMENT$IWLScore)
+
+ASSESSMENT<-ASSESSMENT %>% 
+  group_by(GlobalID,Sample.Date) %>% 
+  summarize(Most = sum(Most,na.rm=TRUE),
+            Least = sum(Least,na.rm=TRUE),
+            IWLScore = sum(IWLScore,na.rm=TRUE)) %>% 
+  ungroup()
+#Convert scores to assessment categories
+ASSESSMENT$assessment <- NA
+ASSESSMENT$assessment <- ifelse(ASSESSMENT$Least<(-3),"Possibly Impaired",ASSESSMENT$assessment)
+ASSESSMENT$assessment <- ifelse(ASSESSMENT$Most>5,"No Known Impact",ASSESSMENT$assessment)
+ASSESSMENT$assessment <- ifelse(ASSESSMENT$Most<6&ASSESSMENT$Least>(-4),"No Conclusion",ASSESSMENT$assessment)
+ASSESSMENT$IWL <- NA
+ASSESSMENT$IWL <- ifelse(ASSESSMENT$IWLScore>23,"Excellent",ASSESSMENT$IWL)
+ASSESSMENT$IWL <- ifelse(ASSESSMENT$IWLScore<24&ASSESSMENT$IWLScore>17,"Good",ASSESSMENT$IWL)
+ASSESSMENT$IWL <- ifelse(ASSESSMENT$IWLScore<18&ASSESSMENT$IWLScore>11,"Fair",ASSESSMENT$IWL)
+ASSESSMENT$IWL <- ifelse(ASSESSMENT$IWLScore<12,"Poor",ASSESSMENT$IWL)
+
+#check to see that the number of original records are retained
+if(nrow(ASSESSMENT) != (nrow(combo))){
+ stop("Error: The number of records created in the Assessment don't match the number of original records!")
+}
+
+
+```
+
+ Then merge the assessment file back with the original long results
+```{r merge-assessment-with-original}
+#merge back with original to get the assessments
+combo3<-combo2 %>% #create a shortened file of the long version
+  select(!c(Final.ID,"ObjectID" )) %>% 
+  distinct()
+
+final<-merge(combo3,ASSESSMENT,by="GlobalID",all.x = TRUE)
+
+combo4<-merge(ASSESSMENT,bugs.short,
+              by.x="GlobalID",
+              by.y="ParentGlobalID",all.x = TRUE) #not sure this one is helpful
+
+
+#check to see that the number of original records are retained
+if(nrow(final) != (nrow(combo))){
+ stop("Error: The number of records created in the Assessment don't match the number of original records!")
+}
+```
+
+One more merge for all the data to get the bugs that were in there
+```{r}
+#merge with the wide bugs to get what was in there
+final<-merge(final,bugs.short,by.x = "GlobalID",by.y="ParentGlobalID")
+
+```
+
+Create file to match up accession numbers with field records to be able to email everyone their results.
+
+```{r write-AC-match-Table}
+# write the tables 
+if(!params$AC_match_complete){#write.table(final,file="2022/Assessment_check.csv",sep=",",row.names=FALSE)
+write.table(field, file =paste(params$year,
+                               "/field_check_match_ACnum.csv",
+                               sep = ""),
+            sep = ",",row.names = FALSE)
+  stop("Please use the created file to match up AC numbers, emails and people to be able to email results")
+}
+
+```
+
+Now, we read in the matched file, this invariably does not have all of the samples, some people either don't provide paper copies and/or don't fill out the field survey.
+
+```{r read-in-matched-file}
+#read matched file back in
+matched<-read.csv(here::here(paste(params$year,
+                      params$matched_file_name,
+                      sep = "/")))
+
+final.short<-final %>% 
+  select(Please.enter.the.Sample.Accession.Number,GlobalID) %>% 
+  distinct()
+
+combo5<-merge(combo4,final.short,by="GlobalID",all.x = TRUE)
+combo6<-merge(combo5,matched,
+              by.x="Please.enter.the.Sample.Accession.Number",
+              by.y="AC_number",
+              all.x = TRUE)
+
+# combo6<-combo6 %>% #this is here in case you get weird columns
+#   select(-c("ï..ObjectID","GlobalID.y")) %>% 
+#   distinct()
+
+
+```
+
+Here is some more processing to take care of the matching for the emails
+
+```{r}
+bugs.short3<-bugs %>% 
+  select(ParentGlobalID,Final.ID) %>% 
+  distinct() %>% 
+  group_by(ParentGlobalID) %>% 
+   summarise(final_bug_id = toString(Final.ID)) #this is creating one column with all the bugs in it
+
+#make a shortened version of the combo
+combo6<-combo6 %>% 
+  select(-c(9:28)) #check this, i'm trying to take out the raw bugs bc, i made the column that combined them
+
+combo7<-merge(combo6, #this one is combining the new combo file with the raw bugs that were made into one column
+              bugs.short3, 
+              by.x="GlobalID.x",
+              by.y="ParentGlobalID",
+              all.x = TRUE)
+
+
+write.csv(combo7,file = here::here(paste(params$year,
+                              "/all_with_assessment_for_emails.csv",
+                              sep = ""),
+                              row.names = FALSE))
+
+```
+
+Great, now you can use that file to email the recipients that provided emails.
+
+
