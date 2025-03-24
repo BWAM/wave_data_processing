@@ -1,14 +1,15 @@
 #KAR Update for converting possibly impaired using BAES methodology
 
 #read in the species/metrics files.
+library(tidyverse)
 
-temp = list.files(path = "C:/Users/kareynol/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_Macro_ITS/",
+temp = list.files(path = "C:/Users/msgarret/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_Macro_ITS/",
                   pattern = "*.csv",full.names = TRUE)
-names=list.files(path = "C:/Users/kareynol/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_Macro_ITS/",
+names=list.files(path = "C:/Users/msgarret/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_Macro_ITS/",
                  pattern = "*.csv",full.names = FALSE)
 myfiles=lapply(setNames(temp, make.names(gsub("*.csv$", "", names))), 
        read.csv)
-sites<-read.csv("C:/Users/kareynol/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_Sites_ITS/Master_S_Site_v2_created_2021_12_07.csv",
+sites<-read.csv("C:/Users/msgarret/New York State Office of Information Technology Services/SMAS - Streams Data Modernization/Cleaned Files/Final_Sites_ITS/Master_S_Site_v2_created_2021_12_07.csv",
                           fileEncoding = "UTF-8-BOM")
 
 #now they're in a nice tidy list
@@ -48,23 +49,23 @@ data<-merge(data1,myfiles$metrics.with.all.fields,by.x=c("SITE_ID","DATE"),
 rm(data1)
 
 #modify species table for merge
-species<-merge(myfiles$MASTER_20221206_S_MACRO_SPECIES_DATA_HISTORY,
-               myfiles$MASTER_20221116_S_MACRO_SPECIES_SAMP_INF_HIST,
+species<-merge(myfiles$MASTER_20231211_S_MACRO_SPECIES_DATA_HISTORY,
+               myfiles$MASTER_20231211_S_MACRO_SPECIES_SAMP_INF_HIST,
                by.x="MSDH_LINKED_ID_VALIDATOR",
                by.y="MSSIH_LINKED_ID_VALIDATOR")
 
 
-myfiles$MASTER_20221206_S_MACRO_SPECIES_DATA_HISTORY$sample_id<-paste(species$BASIN,"-",species$LOCATION,"-",species$RIVMILE,sep="")
-species$DATE <- as.Date(species$MSSIH_EVENT_SMAS_SAMPLE_DATE,"%m/%d/%Y")
-species<-unique(species[c("MSSIH_EVENT_SMAS_HISTORY_ID",
+myfiles$MASTER_20231211_S_MACRO_SPECIES_DATA_HISTORY$sample_id<-paste(species$BASIN,"-",species$LOCATION,"-",species$RIVMILE,sep="")
+species$DATE <- as.Date(species$MSSIH_EVENT_SMAS_SAMPLE_DATE.x,"%m/%d/%Y")
+species<-unique(species[c("MSSIH_EVENT_SMAS_HISTORY_ID.x",
                           "DATE",
                           "MSSIH_BIOSAMPLE_COLLECT_METHOD_NUM",
-                          "MSSIH_REPLICATE",
+                          "MSSIH_REPLICATE.x",
                           "MSTR_MACRO_SPECIES_ID")])
 species<-species %>% 
-  dplyr::rename(SITE_ID=MSSIH_EVENT_SMAS_HISTORY_ID,
+  dplyr::rename(SITE_ID=MSSIH_EVENT_SMAS_HISTORY_ID.x,
          COLLECT=MSSIH_BIOSAMPLE_COLLECT_METHOD_NUM,
-         REPLICATE=MSSIH_REPLICATE,
+         REPLICATE=MSSIH_REPLICATE.x,
          genspecies=MSTR_MACRO_SPECIES_ID)
 data<-data %>% 
   dplyr::rename(COLLECT=MSSIH_BIOSAMPLE_COLLECT_METHOD_NUM,
@@ -151,9 +152,9 @@ write.csv(SBUProb, file="SBUProb.csv",row.names=FALSE)
 #fixing files from survey123 to work with the scripts here
 library(dplyr)
 
-bugs<-read.csv("2022/bug_repeat_1.csv",stringsAsFactors = FALSE)
-sample<-read.csv("2022/WAVE_bug_id_0.csv",stringsAsFactors = FALSE)
-field<-read.csv("2022/S_WSEI_SAMPLE_EVENT_INFO_0.csv")
+bugs<-read.csv("2023/bug_repeat_1.csv",stringsAsFactors = FALSE)
+sample_real<-read.csv("2023/WAVE_bug_id_0.csv",stringsAsFactors = FALSE)
+field<-read.csv("2023/S_WSEI_SAMPLE_EVENT_INFO_0.csv")
 
 MACROS <- read.csv("lookuptables/Families.csv")
 
@@ -170,9 +171,9 @@ bugs.short2<-bugs %>%
   select(ParentGlobalID,Final.ID,Family) %>% 
   distinct()
 
-combo<-merge(sample,bugs.short,by.x="GlobalID",by.y="ParentGlobalID")
+combo<-merge(sample_real,bugs.short,by.x="GlobalID",by.y="ParentGlobalID")
 
-combo2<-merge(sample,bugs.short2,by.x="GlobalID",by.y="ParentGlobalID")
+combo2<-merge(sample_real,bugs.short2,by.x="GlobalID",by.y="ParentGlobalID")
 
 combo3<-combo2 %>% 
   select(GlobalID,Sample.Date,Family)
@@ -242,17 +243,17 @@ ProbSamp$PossiblyImpaired <-"yes"
 
 library(dplyr)
 #remerge with original to get the lat/longs of the sites
-sample.short<-sample %>% 
+sample.short<-sample_real %>% 
   dplyr::select(GlobalID,Enter.the.sample.Latitude,Enter.the.sample.Longitude,Stream.Name) %>% 
   dplyr::rename(Latitude=Enter.the.sample.Latitude,
          Longitude=Enter.the.sample.Longitude)
 
 ProbSamp<-merge(ProbSamp,sample.short,by.x="sample_id",by.y="GlobalID")
-write.csv(ProbSamp,file="2022/Recommended.WAVE.Sites.csv",row.names=FALSE)
+write.csv(ProbSamp,file="2023/Recommended.WAVE.Sites.csv",row.names=FALSE)
 
 
 #pull all of the recommended WAVE sites for a round up
-r.2019<-read.csv(here::here("2021/Recommended.WAVE.Sites_all.csv"),stringsAsFactors = FALSE)
+r.2019<-read.csv(here::here("2022/Recommended.WAVE.Sites_all.csv"),stringsAsFactors = FALSE)
 combo.rec<-r.2019 %>% 
   dplyr::rename("3.Low"=X3.Low) %>% 
   mutate(sample_id="",
@@ -260,5 +261,5 @@ combo.rec<-r.2019 %>%
 combo.rec<-rbind.fill(combo.rec,ProbSamp)
 
 combo.rec$Sample.Date<-as.Date(combo.rec$Sample.Date,"%m/%d/%Y")
-write.csv(combo.rec,file="2022/Recommended.WAVE.Sites_all.csv",row.names=FALSE)
+write.csv(combo.rec,file="2023/Recommended.WAVE.Sites_all.csv",row.names=FALSE)
 
