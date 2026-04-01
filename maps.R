@@ -1,87 +1,136 @@
-#create map for display on AGOL
-#Keleigh Reynolds
-#revamping before handoff 11/6/2023
-
-#read in the final tables from the L drive
-
-year = "2023"
-
-wave_score<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_ASSESSMENT.csv")
-site_info<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_SAMPLE_EVENT_INFO.csv")
+#making db tables
+library(dplyr)
+year = 2025
 
 
-wave_score<-wave_score %>% 
+bugs<-read.csv(here::here("2025/bug_repeat_0.csv"))
+sample<-read.csv(here::here("2025/WAVE_bug_id_1.csv"))
+field<-read.csv(here::here("2025/all_with_assessment_for_emails25.csv"))
+
+#assessment for 2023
+assess.2025<-read.csv(here::here("2025/all_with_assessment_for_emails.csv"),stringsAsFactors = FALSE)
+
+#filter for just this year's
+bugs<-bugs %>% 
+  mutate(date = format(as.Date(CreationDate,"%m/%d/%Y %H:%M:%S"))) %>% 
+  filter(date >= year)
+
+sample<-sample %>% 
+  mutate(date = format(as.Date(Sample.Date,"%m/%d/%Y %H:%M:%S"))) %>% 
+  filter(date >=year)
+
+field<-field %>% 
+  mutate(date = format(as.Date(Date,"%m/%d/%Y %H:%M"))) %>% 
+  filter(date >= year)
+
+#read in the old ones
+#just the colnames
+
+colnames<-read.csv(here::here("lookuptables/db_colnames.csv"),stringsAsFactors = FALSE)
+
+#########################################################################################
+#bug id's
+bugs.short<-bugs %>% 
+  select(ParentGlobalID,Final.ID) %>% 
   distinct()
 
-#create shorter lat/longs to account for slightly different spots between the years
-wave_score<-wave_score %>% 
-  mutate(tidyr::separate_wider_delim(wave_score,cols = WA_SAMPLE_ID, delim = "_", names = c("lat", "long","date")))
+combo<-merge(sample,bugs.short,by.x="GlobalID",by.y="ParentGlobalID")
 
-wave_score2<-wave_score %>% 
-  mutate(lat = as.numeric(lat),
-         long = as.numeric(long))
+combo.short<-combo %>% 
+  select(GlobalID,Please.enter.the.Sample.Accession.Number,Final.ID) %>% 
+  distinct()
+
+field.short<-field %>% 
+  select(S_WSEI_SAMPLE_ID, 
+         Please.enter.the.Sample.Accession.Number) %>%
+  dplyr::rename(Accession.Number= 
+                  Please.enter.the.Sample.Accession.Number)
+
+bugs.2020<-merge(combo.short,field.short,by.x="Please.enter.the.Sample.Accession.Number",
+                 by.y="Accession.Number") %>% 
+  distinct()
+bugs.2020<-bugs.2020 %>% 
+  select(S_WSEI_SAMPLE_ID,Final.ID) %>% 
+  dplyr::rename(WMFDH_MACRO_FAMILY=Final.ID,
+                WMFDH_SAMPLE_ID=S_WSEI_SAMPLE_ID)
+bugs.2020$WMFDH_MACRO_FAMILY<-toupper(bugs.2020$WMFDH_MACRO_FAMILY)
+
+write.csv(bugs.2020,
+          here::here("outputs/db_tables/20250209_S_WAVE_MACROINVERTEBRATE_FAMILY_DATA_HISTORY_append.csv"),
+          row.names = FALSE)
 
 
+####################################################################
+#assessments
 
-wave_score3<-wave_score2 %>% 
-  mutate(lat = signif(lat, digits = 5),
-         long = signif(long, digits = 5)) %>% 
-  select(-c(WA_SAMPLE_ID)) %>% 
+assess.2025.short<-assess.2025 %>% 
+  select(S_WSEI_SAMPLE_ID,assessment) %>% 
   distinct() %>% 
-  mutate(site_id = paste(lat, long, sep = "_")) %>% 
-  mutate( lat = round(lat, digits = 3),
-          long = round(long, digits = 3))
+  dplyr::rename(WA_SAMPLE_ID=S_WSEI_SAMPLE_ID,
+                WA_ASSESSMENT=assessment)
+assess.2025.short$WA_ASSESSMENT<-tolower(assess.2025.short$WA_ASSESSMENT)
 
-wave_score3<-wave_score3 %>% 
-  mutate(year = substr(date,1,4)) %>% 
-  mutate(year_cat = paste(year, WA_ASSESSMENT,sep = ": "),
-         year_cat = stringr::str_to_title(year_cat))
+write.csv(assess.2025.short,
+          "outputs/db_tables/20250209_S_WAVE_ASSESSMENT_append.csv",
+          row.names = FALSE)
+######################################################################
+#sample event info
 
-wave_score4<-wave_score3 %>% 
-  group_by(site_id) %>%
-  slice(which.max(as.Date(date, '%Y%m%d')))
+field.table<-field %>% 
+  select_if(grepl("S_WSEI_",colnames(field))|
+              grepl("Date",colnames(field))|
+              grepl("Choose.the.one.answer*",colnames(field))|
+              grepl("Previous.24.hrs.Weather",colnames(field))|
+              grepl("Weather",colnames(field))|
+              grepl("Choose.all.the.variables",colnames(field)))
 
-wave_hist<-wave_score3 %>% 
-  select(site_id,year,year_cat) %>% 
-  arrange(desc(year)) %>% 
-  select(-c(year)) %>% 
-  group_by(site_id) %>% 
-  summarise(text=paste(year_cat, collapse='\n'))
+field.table<-field.table %>% 
+  rename(WSEI_PRIMARY_CONTACT="Choose.the.one.answer.which.best.describes.your.ability.and.desire.to.participate.in.primary.contact.recreation..swimming.." ,
+         WSEI_CURRENT_WEATHER="Weather", 
+         WSEI_SECONDARY_CONTACT ="Choose.the.one.answer.which.best.describes.your.ability.and.desire.to.participate.in.secondary.contact.recreation..boating.fishing..",
+         WSEI_PREV_WEATHER="Previous.24.hrs.Weather",
+         WSEI_PRIMARY_VARIABLE = "Choose.all.the.variables.that.negatively.affect.your.opinion.of.recreational.use.of.the.waterbody.today.")
 
-merge<-merge(wave_score4,wave_hist,
-             by = "site_id")
+colnames(field.table)=gsub("S_","",colnames(field.table))
 
-merge<-merge %>% 
-  select(-c(date,year_cat)) %>% 
-  arrange(lat) %>% 
-  mutate(pos_long = -(long),
-    diff_lat = lat - lag(lat, default = first(lat)),
-         diff_long = (pos_long - lag(pos_long, default = first(pos_long)))) %>% 
-  mutate(group = case_when(
-    (diff_lat < 0.010) & 
-      (diff_long < 0.010) & 
-      year == lag(year,default = first(year)) &
-      WA_ASSESSMENT == lag(WA_ASSESSMENT)
-    ~ paste("group", row_number()-1),
-          TRUE~ "not_grouped"
-  ))
+field.table<-field.table %>% 
+  relocate(WSEI_SAMPLE_ID,.before=WSEI_LATITUDE)
+#fix dates
 
-merge2<-merge %>% 
-  mutate(collapse = case_when(
-    group == "not_grouped"~FALSE,
-    TRUE~TRUE),
-    row_to_collapse = case_when(
-      collapse == TRUE ~ row_number()-1,
-      TRUE ~ 0
-    )
-  )
-merge3<-merge2 %>% 
- filter(collapse == FALSE) %>% 
-  mutate(Current_WAVE_Score = stringr::str_to_title(WA_ASSESSMENT)) %>% 
-  select(-c(WA_ASSESSMENT,pos_long,diff_lat,diff_long,group,collapse, row_to_collapse)) %>% 
-  rename(Historical_results = text)
+field.table$WSEI_COLLECTION_DATE<-format(as.Date(field.table$Date,"%m/%d/%Y"),"%m/%d/%Y")
 
-write.csv(merge3, here::here(paste("outputs/",
-                                   year,
-                                   "_wave_map_dups_removed.csv",
-                                   sep = "")))
+field.names<-names(field.table)
+col.db<-unique(colnames$WAVE_SAMPLE_EVENT_INFO)
+
+nonmatch<-setdiff(col.db,field.names)
+#fix missing notes colm
+field.table$WSEI_USER_NOTES<-""
+
+#write to table
+write.csv(field.table,
+          "outputs/db_tables/20250209_S_WAVE_SAMPLE_EVENT_INFO_append.csv",
+          row.names = FALSE)
+#######################################################################################
+#combine into one master file
+old.wave<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_ASSESSMENT.csv")
+old.bugs<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_MACROINVERTEBRATE_FAMILY_DATA_HISTORY.csv")
+old.info<-read.csv("L:/DOW/BWAM Share/data/streams/cleaned_files/Final_WAVE_ITS/MASTER_S_WAVE_SAMPLE_EVENT_INFO.csv")
+
+
+#sample event
+setdiff(names(old.info),names(field.table))
+setdiff(names(field.table),names(old.info))
+field.table$Date<-NULL
+field.table$CreationDate<-NULL
+field.table$EditDate<-NULL
+field.table$Sample.Date<-NULL
+master.samp<-rbind(field.table,old.info)
+setdiff(names(old.bugs),names(bugs.2020))
+master.bugs<-rbind(old.bugs,bugs.2020)
+setdiff(names(old.wave),names(assess.2025.short))
+master.assess<-rbind(old.wave,assess.2025.short)
+
+#write to csv
+write.csv(master.samp,"outputs/db_tables/MASTER_S_WAVE_SAMPLE_EVENT_INFO.csv",row.names = FALSE)
+write.csv(master.bugs,"outputs/db_tables/MASTER_S_WAVE_MACROINVERTEBRATE_FAMILY_DATA_HISTORY.csv",row.names=FALSE)
+write.csv(master.assess,"outputs/db_tables/MASTER_S_WAVE_ASSESSMENT.csv",row.names = FALSE)
